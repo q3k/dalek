@@ -2,6 +2,7 @@ import socket
 import os
 import struct
 import time
+import select
 
 import dalek
 import interfaces
@@ -14,7 +15,8 @@ class DalekDaemon(object):
 
     def start(self, configpath="/etc/dalek.conf"):
         self.config = config.Configuration(configpath)
-        self.socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        self.socket_u = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        self.socket_t = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         interface_name = self.config.interface
 
@@ -26,21 +28,25 @@ class DalekDaemon(object):
             raise Exception("No interface created! Are you sure you used a correct one?")
 
         self.teletype = dalek.Teletype(self.interface)
+        time.sleep(2.0)
+        self.teletype.send_string("\n")
 
         if os.path.exists(self.config.daemon_socket):
             os.remove(self.config.daemon_socket)
 
         print "Binding to %s..." % self.config.daemon_socket
-        self.socket.bind(self.config.daemon_socket)
-        self.socket.listen(1)
-        self.socket.settimeout(1.0)
+        self.socket_u.bind(self.config.daemon_socket)
+        self.socket_t.bind(("0.0.0.0", 31337))
+        self.socket_u.listen(1)
+        self.socket_t.listen(1)
+        #self.socket.settimeout(1.0)
+
 
         last_time_on = time.time()
         teletype_on = True
         while True:
-            try:
-                s, a = self.socket.accept()
-            except socket.timeout:
+            fr, fw, fx = select.select([self.socket_u, self.socket_t], [], [], 1.0)
+            if len(fr) == 0:
                 if time.time() - last_time_on > int(self.config.motor_timeout):
                     self.interface.off()
                     self.interface.low()
@@ -48,6 +54,7 @@ class DalekDaemon(object):
                     time.sleep(int(self.config.motor_spindown))
                 continue
 
+            s, a = fr[0].accept()
             s.settimeout(2.0)
             message_type = ""
             try:
@@ -67,6 +74,7 @@ class DalekDaemon(object):
                 if not teletype_on:
                     self.interface.on()
                     self.interface.high()
+                    self.teletype.switch_letters()
                     teletype_on = True
                     last_time_on = time.time()
                     time.sleep(int(self.config.motor_spinup))

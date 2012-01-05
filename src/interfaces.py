@@ -1,4 +1,5 @@
 import sys
+import time
 
 class InterfaceException(Exception):
     pass
@@ -54,7 +55,21 @@ class FuckingUSB(DummyInterface):
         self.dev = dev
 
     def set_device_byte(self, byte):
-        self.dev.ctrl_transfer(0x20, 0x09, 0x0300 | byte, 0, chr(byte), 5000);
+        import usb.core
+        try:
+            self.dev.ctrl_transfer(0x20, 0x09, 0x0300 | byte, 0, chr(byte), 5000);
+        except usb.core.USBError:
+            dev = usb.core.find(idVendor=self.VID, idProduct=self.PID)
+            if not dev:
+                print "Interface seems to be down... Waiting 10 seoncds then trying again."
+                time.sleep(10)
+                dev = usb.core.find(idVendor=self.VID, idProduct=self.PID)
+                if not dev:
+                    print "Teletype still nor present! Failing."
+                    raise Exception("Teletype not present.")
+            self.dev = dev
+            self.set_device_byte(byte)
+
 
     def high(self):
         self.set_device_byte(2)

@@ -89,15 +89,16 @@ class Teletype(object):
 
         self.switch_letters()
         self.column = 0
-        self.switch_letters()
 
     def switch_letters(self):
         self.letters = 1
         self.send_byte(BAUDOT_LETTERS)
+        print "LETTERS"
 
     def switch_figures(self):
         self.letters = 0
         self.send_byte(BAUDOT_FIGURES)
+        print "FIGUERS"
 
     def send_string(self, s):
         for c in s:
@@ -126,7 +127,7 @@ class Teletype(object):
                 self.send_byte(SYMBOLS[character])
                 self.column += 1
 
-        if self.column > 60:
+        if self.column > 68:
             self.column = 0
             self.switch_figures()
             self.send_byte(BAUDOT_CR)
