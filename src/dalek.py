@@ -1,7 +1,6 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
-import serial
 import time
 import sys
 import atexit
@@ -129,8 +128,8 @@ class Teletype(object):
 
         if self.column > 60:
             self.column = 0
-            for _ in range(7):
-                self.send_byte(BAUDOT_CR)
+            self.switch_figures()
+            self.send_byte(BAUDOT_CR)
             self.send_byte(BAUDOT_LF)
 
     def send_byte(self, byte):
