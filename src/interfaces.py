@@ -1,6 +1,12 @@
 import sys
 import time
 
+try:
+    import portio
+except:
+    # gotta catch em all
+    pass
+
 class InterfaceException(Exception):
     pass
 
@@ -36,6 +42,31 @@ class BusPirate(DummyInterface):
 
     def low(self):
         self.s.write("_\n")
+
+
+class VIAGPIO(DummyInterface):
+    def __init__(self):
+        if portio.ioperm(0x123, 1, 1):
+	    raise Exception("Could not gain IO permissions!")
+        self.value = 0
+	portio.outb(self.value, 0x123)
+    
+    def high(self):
+        self.value |= 0b01000000
+        portio.outb(self.value, 0x123)
+
+    def low(self):
+        self.value &= 0b10111111
+        portio.outb(self.value, 0x123)
+
+    def on(self):
+        self.value |= 0b00100000
+        portio.outb(self.value, 0x123)
+
+    def off(self):
+        self.value &= 0b11011111
+        portio.outb(self.value, 0x123)
+
 
 class FuckingUSB(DummyInterface):
     VID = 0x16c0
