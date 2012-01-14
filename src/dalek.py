@@ -126,6 +126,9 @@ class Teletype(object):
                     self.switch_figures()
                 self.send_byte(SYMBOLS[character])
                 self.column += 1
+            else:
+                self.send_byte(BAUDOT_SPACE)
+                self.column += 1
 
         if self.column > 68:
             self.column = 0

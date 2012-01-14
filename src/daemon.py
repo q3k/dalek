@@ -116,7 +116,7 @@ class DalekDaemon(object):
                     data += new_data
 
                 try:
-                    self.teletype.send_string(data)
+                    self.teletype.send_string(data.decode("utf-8"))
                 except:
                     print "Error when talking to teletype... Recreating interface."
                     raise Exception("The interface just crashed.")
