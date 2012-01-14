@@ -93,12 +93,10 @@ class Teletype(object):
     def switch_letters(self):
         self.letters = 1
         self.send_byte(BAUDOT_LETTERS)
-        print "LETTERS"
 
     def switch_figures(self):
         self.letters = 0
         self.send_byte(BAUDOT_FIGURES)
-        print "FIGUERS"
 
     def send_string(self, s):
         for c in s:

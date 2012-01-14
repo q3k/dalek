@@ -5,7 +5,6 @@ import time
 import select
 
 import dalek
-import interfaces
 import config
 
 class DalekDaemon(object):
@@ -21,7 +20,11 @@ class DalekDaemon(object):
         interface_name = self.config.interface
 
         if interface_name == "usb":
-            self.interface = interfaces.FuckingUSB()
+	    from interfaces import FuckingUSB
+            self.interface = FuckingUSB()
+	elif interface_name == "viagpio":
+	    from interfaces import VIAGPIO
+            self.interface = VIAGPIO()
         # TODO: implement more interfaces
 
         if not self.interface:
